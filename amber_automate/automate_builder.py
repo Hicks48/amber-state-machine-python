@@ -4,7 +4,7 @@
 from amber_automate.automate import Automate
 from amber_automate.state import State
 from amber_automate.transition_table import TransitionTable
-
+from amber_automate.transition import Transition
 
 class AutomateBuilder(object):
 
@@ -124,75 +124,72 @@ class AutomateBuilder(object):
 
         return self
 
-    def add_transition(self, source_state, amber_input, *target_states):
+    def add_transition(self, source, is_open_func, *targets):
         # Name is string and tuple contains only one list
-        if isinstance(source_state, str) and all(isinstance(n, list) for n in target_states) and len(target_states) == 1:
-            return self._add_transition_with_list(source_state, amber_input, target_states)
+        if isinstance(source, str) and all(isinstance(n, list) for n in targets) and len(targets) == 1:
+            return self._add_transition_with_list(source, is_open_func, targets)
 
         # Name is string and target states contains strings
-        elif isinstance(source_state, str) and all(isinstance(n, str) for n in target_states):
-            return self._add_transition_with_list(source_state, amber_input, list(target_states))
+        elif isinstance(source, str) and all(isinstance(n, str) for n in targets):
+            return self._add_transition_with_list(source, is_open_func, list(targets))
 
         # Source state is State and target states contains states
-        elif isinstance(source_state, State) and all(isinstance(n, State) for n in target_states):
-            return self._add_transition_with_state(source_state, amber_input, target_states)
+        elif isinstance(source, State) and all(isinstance(n, State) for n in targets):
+            return self._add_transition_with_state(source, is_open_func, targets)
 
         # Raise exception if didn't get correct types as input
         else:
-            raise Exception("Didn't get input with correct types. Accepts <str> <amber_input> <tuple of strings>, <str> <amber_input> <list of strings> or <state> <amber_input> <tuple of states>.")
+            raise Exception("Didn't get input with correct types. Accepts <str> <function> <tuple of strings>, <str> <function> <list of strings> or <state> <function> <tuple of states>.")
 
-    def _add_transition_with_list(self, source_state_name, amber_input, target_state_names):
+    def _add_transition_with_list(self, source_state_name, is_open_func, target_state_names):
 
         if source_state_name not in self.states:
             raise Exception("No state named " + source_state_name + " found. Use addState first.")
 
-        state_input_pair = (self.states[source_state_name], amber_input)
+        source_state = self.states[source_state_name]
 
-        transition_states = set()
+        target_states = set()
         for target_state_name in target_state_names:
 
             if target_state_name not in self.states:
                 raise Exception("No state named " + source_state_name + " found. Use addState first.")
 
-            transition_states.add(self.states[target_state_name])
+            target_states.add(self.states[target_state_name])
 
         # Update transition table
-        if state_input_pair not in self.transition_table:
-            self.transition_table[state_input_pair] = transition_states
+        if source_state not in self.transition_table:
+            self.transition_table[source_state] = set()
 
-        else:
-            original_target_states = self.transition_table[state_input_pair]
-            original_target_states.update(transition_states)
-            self.transition_table[state_input_pair] = original_target_states
+        transition = Transition(source_state, is_open_func, target_states)
+        current_transitions = self.transition_table[source_state]
+        current_transitions.add(transition)
+        self.transition_table[source_state] = current_transitions
 
         return self
 
-    def _add_transition_with_state(self, source_state, amber_input, *target_states):
+    def _add_transition_with_state(self, source_state, is_open_func, *target_states):
 
         # Check source state
         if source_state.name not in self.states:
             raise Exception("No state named " + source_state.name + " found. Use addState first.")
 
-        # Create source state input pair
-        state_input_pair = (self.states[source_state.name], amber_input)
-
         # Check transition states
-        transition_states = set()
+        target_states_as_set = set()
         for target_state in target_states:
 
-            if not target_state.name in self.states:
+            if target_state.name not in self.states:
                 raise Exception("No state named " + target_state.name + " found. Use addState first.")
 
-            transition_states.update(target_state)
+            target_states_as_set.update(target_state)
 
         # Update transition table
-        if state_input_pair not in self.transition_table:
-            self.transitionTable[state_input_pair] = transition_states
+        if source_state not in self.transition_table:
+            self.transitionTable[source_state] = set()
 
-        else:
-            original_target_states = self.transition_table[state_input_pair]
-            original_target_states.update(transition_states)
-            self.transition_table[state_input_pair] = original_target_states
+        transition = Transition(source_state, is_open_func, target_states_as_set)
+        current_transitions = self.transition_table[source_state]
+        current_transitions.add(transition)
+        self.transition_table[source_state] = current_transitions
 
         return self
 

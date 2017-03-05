@@ -6,8 +6,8 @@ import unittest
 
 from amber_automate.automate_builder import AutomateBuilder
 from amber_automate.state import State
-from amber_input.text_input import TextInput
-from amber_input.epsilon_input import EpsilonInput
+from amber_condition.text_condition import TextConditionFactory
+from amber_condition.epsilon_condition import EpsilonConditionFactory
 from amber_automate.execution import Execution
 from amber_automate.execution_configuration import ExecutionConfiguration
 
@@ -30,7 +30,7 @@ class TestCallbacks(unittest.TestCase):
         exe = Execution(automate, ExecutionConfiguration.get_default_configuration())
         exe.start()
 
-        exe.update(TextInput("1"))
+        exe.update("1")
         self.assertTrue("a on entry" in self.call_register and self.call_register["a on entry"] == "entry", "Callback not called correctly")
 
     def test_should_call_on_entry_on_epsilon_transition(self):
@@ -38,8 +38,8 @@ class TestCallbacks(unittest.TestCase):
         exe = Execution(automate, ExecutionConfiguration.get_default_configuration())
         exe.start()
 
-        exe.update(TextInput("1"))
-        exe.update(TextInput("2"))
+        exe.update("1")
+        exe.update("2")
 
         self.assertTrue("b on entry" in self.call_register and self.call_register["b on entry"] == "entry", "Callback not called correctly")
         self.assertTrue("c on entry" in self.call_register and self.call_register["c on entry"] == "entry", "Callback not called correctly")
@@ -49,7 +49,7 @@ class TestCallbacks(unittest.TestCase):
         exe = Execution(automate, ExecutionConfiguration.get_default_configuration())
         exe.start()
 
-        exe.update(TextInput("invalid"))
+        exe.update("invalid")
         self.assertTrue("error on entry" in self.call_register and self.call_register["error on entry"] == "entry", "Callback not called correctly")
 
     def test_should_call_on_exit_for_state(self):
@@ -57,7 +57,7 @@ class TestCallbacks(unittest.TestCase):
         exe = Execution(automate, ExecutionConfiguration.get_default_configuration())
         exe.start()
 
-        exe.update(TextInput("1"))
+        exe.update("1")
         self.assertTrue("start on exit" in self.call_register and self.call_register["start on exit"] == "exit", "Callback not called correctly")
 
     def test_should_call_on_exit_for_state_on_error(self):
@@ -65,7 +65,7 @@ class TestCallbacks(unittest.TestCase):
         exe = Execution(automate, ExecutionConfiguration.get_default_configuration())
         exe.start()
 
-        exe.update(TextInput("invalid"))
+        exe.update("invalid")
         self.assertTrue("start on exit" in self.call_register and self.call_register["start on exit"] == "exit", "Callback not called correctly")
 
     def test_should_call_on_stay_on_state(self):
@@ -77,8 +77,8 @@ class TestCallbacks(unittest.TestCase):
         exe = Execution(automate, conf)
         exe.start()
 
-        exe.update(TextInput("1"))
-        exe.update(TextInput("stay here"))
+        exe.update("1")
+        exe.update("stay here")
 
         self.assertTrue("a on stay" in self.call_register and self.call_register["a on stay"] == "stay", "Callback not called correctly")
         self.assertTrue("a on exit" not in self.call_register, "Exit called when only stay was expected callback")
@@ -90,9 +90,9 @@ class TestCallbacks(unittest.TestCase):
         self.builder.add_state(State.create_state("b", self._create_callback("b on entry", "entry"), self._create_callback("b on exit", "exit"), self._create_callback("b on stay", "stay")))
         self.builder.add_state(State.create_state("c", self._create_callback("c on entry", "entry"), self._create_callback("c on exit", "exit"), self._create_callback("c on stay", "stay")))
 
-        self.builder.add_transition("start", TextInput("1"), "a")
-        self.builder.add_transition("a", TextInput("2"), "b")
-        self.builder.add_transition("b", EpsilonInput.get_epsilon_input(), "c")
+        self.builder.add_transition("start", TextConditionFactory.create_text_condition("1"), "a")
+        self.builder.add_transition("a", TextConditionFactory.create_text_condition("2"), "b")
+        self.builder.add_transition("b", EpsilonConditionFactory.create_epsilon_input(), "c")
 
         self.builder.set_start_state("start")
         self.builder.set_error_state("error")

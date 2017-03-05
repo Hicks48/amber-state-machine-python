@@ -20,7 +20,8 @@ class Execution(object):
     def start(self):
         # Add current states and find epsilon transitions
         self.current_states.add(self.automate.start_state)
-        self.automate.transition_table.get_epsilon_tranitions(self.current_states)
+        with_epsilon_transition = self.automate.transition_table.get_next_states(next(iter(self.current_states)), None)
+        self.current_states.update(with_epsilon_transition)
 
         # Look if end states are found and call on entry callback for each
         end_state_names = self.automate.get_end_state_names()
@@ -39,23 +40,18 @@ class Execution(object):
 
         return not self.is_at_end()
 
-    def update(self, inputs=None, *tuple_inputs):
-        if tuple_inputs:
-            return self._update_collection(inputs)
-        elif isinstance(inputs, list):
-            return self._update_list(inputs)
-        # Assume is single input
-        else:
-            return self._update_single(inputs)
+    def update(self, *amber_inputs):
 
-    def _update_collection(self, *inputs):
-        return self.update(list(inputs))
+        if all(isinstance(n, list) for n in amber_inputs) and len(amber_inputs) == 1:
+            return self._update_list(amber_inputs[0])
+        else:
+            return self._update_list(list(amber_inputs))
 
     def _update_list(self, inputs):
         input_accepted = list()
 
         for amber_input in inputs:
-            input_accepted.append(self.update(amber_input))
+            input_accepted.append(self._update_single(amber_input))
 
         return input_accepted
 
@@ -71,7 +67,7 @@ class Execution(object):
         for current_state in self.current_states:
 
             # Get states to transit
-            states_to_transit = self.automate.transition_table.get_transition_with_epsilon((current_state, amber_input))
+            states_to_transit = self.automate.transition_table.get_next_states(current_state, amber_input)
 
             # Call on entry callback for each states which is to become current state
             # Do checks to find end states
