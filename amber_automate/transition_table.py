@@ -22,7 +22,9 @@ class TransitionTable(object):
     def get_next_states(self, current_state, amber_input):
         next_states = set()
 
-        transitions = self.transition_table[current_state]
+        transitions = []
+        if current_state in self.transition_table:
+            transitions = self.transition_table[current_state]
 
         # Transitions with input
         for transition in transitions:
