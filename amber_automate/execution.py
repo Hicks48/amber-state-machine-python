@@ -77,7 +77,7 @@ class Execution(object):
                     transit_state.on_entry()
 
                 if transit_state.name in self.automate.get_end_state_names():
-                    end_states.update(transit_state)
+                    end_states.add(transit_state)
 
             # If no states where to transit are found stay in current state
             # or go to error state depending on configuration

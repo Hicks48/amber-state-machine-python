@@ -6,6 +6,11 @@ from amber_automate.execution_configuration import ExecutionConfiguration
 
 
 class ExecutionBuilder(object):
+
+    @staticmethod
+    def create_exe_buidler():
+        return ExecutionBuilder()
+
     def __init__(self):
         self.configuration = ExecutionConfiguration.get_default_configuration()
         self.automate = None

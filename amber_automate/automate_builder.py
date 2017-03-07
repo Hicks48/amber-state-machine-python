@@ -120,7 +120,7 @@ class AutomateBuilder(object):
         if name not in self.states:
             raise Exception("No state named " + name + " found. Use addState first.")
 
-        self.end_state_names.update(name)
+        self.end_state_names.add(name)
 
         return self
 

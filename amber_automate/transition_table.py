@@ -33,7 +33,11 @@ class TransitionTable(object):
 
         # Epsilon transitions
         for state in list(next_states):
-            transitions = self.transition_table[state]
+
+            transitions = set()
+            if state in self.transition_table:
+                transitions = self.transition_table[state]
+
             for transition in transitions:
                 if transition.is_open(None):
                     next_states.update(transition.targets)
