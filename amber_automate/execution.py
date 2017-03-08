@@ -16,6 +16,7 @@ class Execution(object):
 
     def reset(self):
         self.current_states = set()
+        self.encountered_end_states = set()
 
     def start(self):
         # Add current states and find epsilon transitions
